@@ -1,14 +1,21 @@
-# Use lightweight Java runtime
-FROM eclipse-temurin:17-jdk
+# ---------- Build Stage ----------
+FROM maven:3.9.9-eclipse-temurin-17 AS build
 
-# Set working directory
 WORKDIR /app
 
-# Copy jar file (change name if needed)
-COPY target/*.jar greencart.jar
+COPY . .
 
-# Expose port (Render uses 10000 by default, but Spring uses 8080)
+RUN mvn clean package -DskipTests
+
+# ---------- Run Stage ----------
+FROM eclipse-temurin:17-jdk
+
+WORKDIR /app
+
+# Copy generated jar (auto-detect jar name)
+COPY --from=build /app/target/*.jar greencart.jar
+
 EXPOSE 8080
 
-# Run the app
 ENTRYPOINT ["java", "-jar", "greencart.jar"]
+
